@@ -1,0 +1,16 @@
+$gray-100: #F3F4F6;
+$danger: #DC2626;
+
+body {
+    background: $gray-100;
+}
+
+a.logo {
+    display: flex;
+    margin-bottom: 0;
+    text-decoration: none;
+}
+
+.form-control.input-with-errors {
+    border: 1px solid $danger;
+}
