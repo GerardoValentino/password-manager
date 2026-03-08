@@ -1,10 +1,19 @@
 class EntriesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_entry, only: %i[show edit destroy]
+  before_action :set_entry, only: %i[show edit update destroy]
 
   def index
-    @entries = current_user.entries
-    @main_entry = current_user.entries.first
+    @entries = current_user.entries.search(params[:name])
+    @main_entry = @entries.first
+
+    return unless params[:name].present?
+
+    if @entries.length == 1
+      render turbo_stream: [
+        turbo_stream.update("main-dashboard", partial: "entries/main", locals: { entry: @entries.first }),
+        turbo_stream.update("entries-list", partial: "entries/entry", locals: {entry: @entries.first})
+      ]
+    end
   end
   
   def show
@@ -12,6 +21,18 @@ class EntriesController < ApplicationController
 
   def new
     @entry = Entry.new
+  end
+
+  def update
+    if @entry.update(entry_params)
+      flash.now[:notice] = "#{@entry.name} has been updated"
+      respond_to do |format|
+        format.html { redirect_to @entry }
+        format.turbo_stream { }
+      end
+    else
+      render :edit, status: :unprocessable_entity
+    end
   end
 
   def create
